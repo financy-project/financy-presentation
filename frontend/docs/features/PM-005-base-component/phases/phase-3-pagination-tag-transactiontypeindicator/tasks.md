@@ -1,0 +1,10 @@
+## Phase 3: Pagination, Tag, TransactionTypeIndicator
+
+- [x] F-011: Criar `src/components/ui/pagination.tsx` (`Pagination`, props conforme blueprint acima) — usa `IconButton` para prev/next (`ChevronLeft`/`ChevronRight` do `lucide-react`) e `Button` (`variant="default"` na página atual, `variant="ghost"` nas demais) para os números 1..`totalPages`.
+- [x] F-012: Testes para `Pagination` em `src/components/ui/__tests__/pagination.test.tsx`: renderiza um botão por página; chama `onPageChange` com o número correto ao clicar; desabilita "anterior" quando `page === 1`; desabilita "próximo" quando `page === totalPages`; desabilita tudo quando `disabled` é `true`; marca a página atual com `variant="default"`.
+- [x] F-013: Criar `src/components/ui/tag.tsx` (`Tag`, props conforme blueprint acima) — mapeia `color` para as classes `bg-{color}-light text-{color}-dark` já existentes em `src/index.css`.
+- [x] F-014: Testes para `Tag` em `src/components/ui/__tests__/tag.test.tsx`: renderiza o texto filho; aplica as classes corretas para cada uma das 7 cores; aplica o tamanho correto (`sm`/`md`); usa `color="blue"` e `size="md"` como default quando omitidos.
+- [x] F-015: Criar `src/components/transaction-type-indicator.tsx` (`TransactionTypeIndicator`, props conforme blueprint acima) — ícone `CircleArrowUp`/`text-success` para `type="income"`, `CircleArrowDown`/`text-destructive` para `type="expense"`, label "Entrada"/"Saída" respectivamente.
+- [x] F-016: Testes para `TransactionTypeIndicator` em `src/components/__tests__/transaction-type-indicator.test.tsx`: renderiza "Entrada" com o ícone e a cor corretos para `type="income"`; renderiza "Saída" com o ícone e a cor corretos para `type="expense"`.
+- [x] F-017: Preencher as seções "Pagination", "Tag" e "TransactionTypeIndicator" em `src/components/components-preview.tsx` com os estados de cada um (Pagination: controle interativo com `useState` local; Tag: grid com as 7 cores × 2 tamanhos; TransactionTypeIndicator: os dois tipos lado a lado).
+

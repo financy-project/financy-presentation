@@ -1,0 +1,22 @@
+# Categorias no Dashboard - PM-024 - Tasks
+
+Generated mechanically from `plan.md`'s `## Implementation Phases` — one `F-NNN` per bullet, verbatim, organized by phase.
+
+## Phase 1: Foundation
+
+- [x] F-001: Extend `GET_DASHBOARD` in `src/modules/dashboard/graphql/queries.ts` to add the `balanceByCategory { categoryId title color transactionCount totalValue }` selection (exact `gql` document in the GraphQL/API Blueprint above); add the `DashboardCategoryBalance` interface and add `balanceByCategory: DashboardCategoryBalance[]` to `GetDashboardData['dashboard']`
+- [x] F-002: Update `useGetDashboard()` in `src/modules/dashboard/hooks/use-get-dashboard.ts`: add `categories: DashboardCategoryBalance[]` to `UseGetDashboardResult`, return `data?.dashboard.balanceByCategory ?? []`
+- [x] F-003: Update `src/modules/dashboard/hooks/__tests__/use-get-dashboard.test.tsx`: add a `CATEGORIES` fixture array (2+ entries) to the existing mocked `result.data.dashboard`, and assert `result.current.categories` equals it in the "resolves with the mocked movement" case; assert `result.current.categories` is `[]` in the pre-resolution and network-error cases
+
+## Phase 2: Features
+
+- [x] F-004: Implement `DashboardCategoriesCard({ categories, isLoading, error }: DashboardCategoriesCardProps)` in `src/modules/dashboard/components/dashboard-categories-card.tsx` per the Component Blueprint: `Card` (`border border-gray-200 p-0 ring-0`) containing a header (`flex items-center justify-between border-b border-gray-200 px-6 py-5`) with the `text-xs font-medium tracking-wider text-gray-500 uppercase` "CATEGORIAS" title (unchanged from the placeholder) and the `react-router-dom` `Link to="/categorias"` "Gerenciar" + `ChevronRight` (`size-4`) per the Figma Fidelity table, and a body (`p-6`) that renders: `Carregando categorias…` when `isLoading`; `<p role="alert">{error}</p>` when `error`; `"Nenhuma categoria com movimentação neste mês."` when `!isLoading && !error && categories.length === 0`; otherwise a `flex flex-col gap-5` list of rows (`flex items-center justify-between`), each with a module-local `COLOR_OPTIONS`-resolved `<Tag color={...}>{category.title}</Tag>`, a `text-sm text-gray-600` `"{category.transactionCount} itens"`, and a `text-sm font-semibold text-gray-800 text-right` `formatCurrencyValue(Math.abs(category.totalValue))`
+- [x] F-005: Add the module-local `COLOR_OPTIONS` (hex → `TagColor`) lookup at the top of `dashboard-categories-card.tsx`, copied in shape from `transaction-category-cell.tsx`'s (not imported — module-isolation convention)
+- [x] F-006: Update `DashboardHighlightsProps`/`DashboardHighlights` in `src/modules/dashboard/components/dashboard-highlights.tsx` to accept `{ categories, isLoading, error }` and forward them to `<DashboardCategoriesCard categories={categories} isLoading={isLoading} error={error} />` (no change to `<RecentTransactionsCard />`)
+- [x] F-007: Update `DashboardPage` in `src/modules/dashboard/pages/dashboard-page.tsx`: destructure `categories` from `useGetDashboard()` alongside `movement`/`isLoading`/`error`, and pass `categories`, `isLoading`, `error` to `<DashboardHighlights>`
+- [x] F-008: Rewrite `src/modules/dashboard/components/__tests__/dashboard-categories-card.test.tsx` (replacing the placeholder test) with cases: renders one row per category with its `Tag` label, `"{n} itens"`, and `formatCurrencyValue(Math.abs(totalValue))`; renders `Carregando categorias…` when `isLoading`; renders the `role="alert"` error text when `error` is set; renders the empty-state message when `categories` is `[]` and not loading/erroring; renders a `Link` to `/categorias` with the accessible name "Gerenciar" (wrap in `MemoryRouter` per the existing `dashboard-page.test.tsx` convention)
+
+## Phase 3: Polish
+
+- [x] F-009: Update `src/modules/dashboard/pages/__tests__/dashboard-page.test.tsx`'s `useGetDashboardMock.mockReturnValue` calls to include `categories: []` (or a fixture) in every case so the mock satisfies the new `UseGetDashboardResult` shape; extend the "renders DashboardHighlights regardless of the summary loading state" case (or add a new one) to assert the categories card's own loading/empty text renders correctly when `categories: [], isLoading: true`
+- [x] F-010: Manual verification against the running app (`pnpm dev`) with the real GraphQL API: confirm spacing/colors/typography against the Figma Fidelity table row-by-row (per `/figma-fidelity`'s mandatory post-implementation check) and confirm clicking "Gerenciar" navigates to `/categorias`

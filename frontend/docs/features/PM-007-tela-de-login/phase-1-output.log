@@ -1,0 +1,9 @@
+Build succeeds (the chunk-size note is a pre-existing bundling advisory, unrelated to this phase). All Phase 1 Foundation tasks are complete, tested, and committed.
+
+✅ PHASE COMPLETE
+
+## Exports
+- `LOGIN`, `LoginInput`, `LoginData` — `src/modules/auth/graphql/mutations.ts`
+- `useLoginUser(): { loginUser: (input: LoginInput) => Promise<LoginData['login'] | null>, isLoading: boolean, fieldErrors: RegisterFieldError[], formError: string | null }` — `src/modules/auth/hooks/use-login-user.ts`
+- `apolloClient`'s `HttpLink` now sends `credentials: 'include'` — `src/lib/apollo-client.ts`
+- `Checkbox` (Radix primitive, `rounded-[4px]`, `border-gray-300`) — `src/components/ui/checkbox.tsx`

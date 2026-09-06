@@ -1,0 +1,8 @@
+All tasks and test cases are checked off, all 73 tests pass, and the build succeeds cleanly.
+
+✅ PHASE COMPLETE
+
+## Exports
+- `LoginForm(): JSX.Element` — `src/modules/auth/components/login-form.tsx`, self-contained form with `loginFormSchema` (email + required-password + rememberMe), reads/writes `localStorage['financy:remembered-email']`
+- `LoginPage(): JSX.Element` — `src/modules/auth/pages/login-page.tsx`, rewritten with Card/CardHeader/CardContent layout composing `LoginForm`, mirrors `RegisterPage` structure
+- `window.ResizeObserver` polyfill added to `src/test/setup.ts` (needed by Radix `Checkbox` under jsdom — reusable by any future test rendering a `Checkbox`)

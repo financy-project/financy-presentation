@@ -1,0 +1,7 @@
+# Phase 1: Foundation
+
+- [x] F-001: Extend `GET_DASHBOARD` (`src/modules/dashboard/graphql/queries.ts`) to select `recentTransactions { id type description date value category { id title color icon } }`; add `DashboardRecentTransaction` interface and extend `GetDashboardData` per GraphQL/API Blueprint
+- [x] F-002: Extend `useGetDashboard()` (`src/modules/dashboard/hooks/use-get-dashboard.ts`): add `recentTransactions: data?.dashboard.recentTransactions ?? []` to `UseGetDashboardResult` and its return object
+- [x] F-003: Unit tests for `useGetDashboard`'s new field (`src/modules/dashboard/hooks/__tests__/use-get-dashboard.test.tsx`): returns `recentTransactions` from mocked `data.dashboard.recentTransactions`; returns `recentTransactions: []` before the query resolves
+- [x] F-004: Implement `formatDashboardTransactionDate(iso: string): string` and `formatDashboardTransactionValue(cents: number, type: 'EXPENSE' | 'INCOME'): string` (`src/modules/dashboard/utils/format-dashboard-transaction.ts`) — identical implementation to `src/modules/transactions/utils/format-transaction.ts` (UTC-timezone date formatter, no-break-space normalization on value)
+- [x] F-005: Unit tests (`src/modules/dashboard/utils/__tests__/format-dashboard-transaction.test.ts`): same cases as `format-transaction.test.ts` — date formats as `DD/MM/YY` in UTC; value formats with `+`/`-` sign per `type`, no `U+00A0`

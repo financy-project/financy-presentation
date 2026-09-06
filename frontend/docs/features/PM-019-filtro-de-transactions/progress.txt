@@ -1,0 +1,42 @@
+[2026-09-05 06:38:03] ✅ Phase 1: Foundation
+  Branch: PM-019/phase-1-foundation
+  - F-001: restored useCategoriesStore, CategorySelect, TransactionTypeSelect, TransactionSearchInput, PeriodSelect
+  - F-002: tests for all of the above (pnpm test — 228/228 passing)
+  Exports:
+    useCategoriesStore: Zustand store — { categories: CategoryForSelect[], isLoading: boolean, error: string | null, setCategories, setLoading, setError } (src/modules/transactions/stores/use-categories-store.ts)
+    CategorySelect({ id?, label?, value, onValueChange, placeholder?, errorMessage?, resettable? }): JSX.Element (src/modules/transactions/components/category-select.tsx) — reads useCategoriesStore internally
+    TransactionTypeSelect({ id?, label?, value: TransactionTypeFilterValue, onValueChange }): JSX.Element (src/modules/transactions/components/transaction-type-select.tsx) — TransactionTypeFilterValue = 'EXPENSE' | 'INCOME' | ''
+    TransactionSearchInput({ id?, value, onChange }): JSX.Element (src/modules/transactions/components/transaction-search-input.tsx)
+    PeriodSelect({ id?, label?, value: PeriodValue, onChange }): JSX.Element (src/modules/transactions/components/period-select.tsx) — PeriodValue = { month: number, year: number }
+
+[2026-09-05 07:01:44] ✅ Phase 2: Features
+  Branch: PM-019/phase-2-features
+  - F-003: useDebouncedValue hook
+  - F-004: useSyncCategoriesForSelect hook
+  - F-005: LIST_TRANSACTIONS filter args (description/type/categoryIds/month/year)
+  - F-006: useListTransactions rewritten to take TransactionFilterValues (debounce, pagination reset, AbortController cancellation)
+  - F-007: TransactionFilters component
+  - F-008: wired TransactionFilters + useSyncCategoriesForSelect into TransactionsPage
+  - F-009: migrated TransactionForm to shared CategorySelect
+  - F-010: deleted superseded useCategoriesForSelect hook + test
+  Exports:
+    useDebouncedValue<T>(value: T, delayMs: number): T (src/modules/transactions/hooks/use-debounced-value.ts)
+    useSyncCategoriesForSelect(): void (src/modules/transactions/hooks/use-sync-categories-for-select.ts) — call once, from TransactionsPage
+    TransactionFilterValues: { description: string, type: TransactionTypeFilterValue, categoryId: string, period: PeriodValue } (src/modules/transactions/hooks/use-list-transactions.ts)
+    useListTransactions(filters: TransactionFilterValues): UseListTransactionsResult (src/modules/transactions/hooks/use-list-transactions.ts) — signature change, was useListTransactions()
+    TransactionFilters({ value: TransactionFilterValues, onChange, className? }): JSX.Element (src/modules/transactions/components/transaction-filters.tsx)
+    LIST_TRANSACTIONS now takes $description/$type/$categoryIds/$month/$year (src/modules/transactions/graphql/queries.ts); ListTransactionsVariables updated to match
+    useCategoriesForSelect removed — TransactionForm now uses CategorySelect directly
+    Manually verified: pnpm test (245/245), pnpm lint (clean), pnpm build (compiles)
+
+[2026-09-05 07:12:36] ✅ Phase 3: Polish
+  Branch: PM-019/phase-3-polish
+  - F-011: combined search+type+category+period filters verified as an intersection (TransactionsPage integration test + manual)
+  - F-012: TransactionsTable's existing empty state confirmed for a zero-result filter combination (test + manual)
+  - F-013: accessibility pass — verified in a real browser against the local server: Tab reaches PeriodSelect's trigger (a real <button>), Enter opens it, the current month has aria-selected="true", scrolling the listbox to the bottom loads one more year back (21→33 options, oldest Janeiro/2024), Escape closes it and returns focus to the trigger
+  - F-014: visual pass — filter bar (Buscar/Tipo/Categoria/Período, 4-column Card) matches .workspace/image copy 7.png's layout/spacing; Período correctly defaults to the current month (Setembro/2026 at verification time)
+  Exports: none (polish/verification phase, no new public API)
+  Notes:
+    Manually verified via pnpm dev (VITE_GRAPHQL_URI=http://localhost:4000/graphql, copied from the main checkout's .env, not committed) + browser
+    listCategories failed with a 503 from the local backend during this manual check — reproduced identically on the pre-existing, untouched /categorias page, confirming it's a local backend/environment issue, not a PM-019 regression. CategorySelect's error UI (errorMessage from useCategoriesStore) displayed correctly in response.
+    pnpm test: 247/247, pnpm lint: clean, pnpm build: compiles

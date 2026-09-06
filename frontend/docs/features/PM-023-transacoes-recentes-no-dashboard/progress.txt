@@ -1,0 +1,63 @@
+
+[2026-09-05 14:08:00] ✅ Phase 1: Foundation
+  Branch: PM-023/phase-1-foundation
+  - [x] F-001: Extend `GET_DASHBOARD` (`src/modules/dashboard/graphql/queries.ts`) to select `recentTransactions { id type description date value category { id title color icon } }`; add `DashboardRecentTransaction` interface and extend `GetDashboardData` per GraphQL/API Blueprint
+  - [x] F-002: Extend `useGetDashboard()` (`src/modules/dashboard/hooks/use-get-dashboard.ts`): add `recentTransactions: data?.dashboard.recentTransactions ?? []` to `UseGetDashboardResult` and its return object
+  - [x] F-003: Unit tests for `useGetDashboard`'s new field
+  - [x] F-004: Implement `formatDashboardTransactionDate`/`formatDashboardTransactionValue` (`src/modules/dashboard/utils/format-dashboard-transaction.ts`)
+  - [x] F-005: Unit tests for the formatters
+  Exports:
+    export interface DashboardRecentTransaction {
+      id: string
+      type: 'EXPENSE' | 'INCOME'
+      description: string
+      date: string
+      value: number
+      category: { id: string; title: string; color: string; icon: string } | null
+    }
+    // GetDashboardData.dashboard now also has: recentTransactions: DashboardRecentTransaction[]
+    // useGetDashboard() now also returns: recentTransactions: DashboardRecentTransaction[]
+    export function formatDashboardTransactionDate(iso: string): string
+    export function formatDashboardTransactionValue(cents: number, type: 'EXPENSE' | 'INCOME'): string
+    // both in src/modules/dashboard/utils/format-dashboard-transaction.ts
+
+[2026-09-05 14:27:00] ✅ Phase 2: Features
+  Branch: PM-023/phase-2-features
+  - [x] F-006: Extend `useCreateTransaction` with optional `UseCreateTransactionOptions` (`additionalRefetchQueries`)
+  - [x] F-007: Unit tests for the new parameter
+  - [x] F-008: Implement `DashboardTransactionRow` (`src/modules/dashboard/components/dashboard-transaction-row.tsx`)
+  - [x] F-009: Component tests for `DashboardTransactionRow`
+  - [x] F-010: Replace the `RecentTransactionsCard` placeholder with real content
+  Exports:
+    export interface UseCreateTransactionOptions {
+      additionalRefetchQueries?: DocumentNode[]
+    }
+    export function useCreateTransaction(options?: UseCreateTransactionOptions): UseCreateTransactionResult
+    // src/modules/transactions/hooks/use-create-transaction.ts
+
+    export interface DashboardTransactionRowProps {
+      transaction: DashboardRecentTransaction
+    }
+    export function DashboardTransactionRow(props: DashboardTransactionRowProps): JSX.Element
+    // src/modules/dashboard/components/dashboard-transaction-row.tsx
+
+    // Plan refinement: NewTransactionDialog gained a new optional prop,
+    // forwarded to its own internal useCreateTransaction() call, instead of
+    // RecentTransactionsCard calling useCreateTransaction itself:
+    interface NewTransactionDialogProps {
+      open: boolean
+      onOpenChange: (open: boolean) => void
+      additionalRefetchQueries?: DocumentNode[]
+    }
+    // src/modules/transactions/components/new-transaction-dialog.tsx
+
+    export function RecentTransactionsCard(): JSX.Element // real content now
+    // src/modules/dashboard/components/recent-transactions-card.tsx
+
+[2026-09-05 14:32:00] ✅ Phase 3: Polish
+  Branch: PM-023/phase-3-polish
+  - [x] F-011: Full component tests for `RecentTransactionsCard` (loading/error/empty/populated, "Ver todas" href, dialog open + submit flow)
+  - [x] F-012: Verified `dashboard-page.test.tsx` already covers both `useGetDashboard()` call sites (fixed in phase 2)
+  - [x] F-013: Accessibility pass — Button/Link-based interactive elements, role="alert" intact — no changes needed
+  Exports: none new — this phase only adds test coverage.
+  Final state: pnpm test 306/306, pnpm build clean.

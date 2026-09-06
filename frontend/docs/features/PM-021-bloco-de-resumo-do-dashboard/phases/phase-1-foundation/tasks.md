@@ -1,0 +1,7 @@
+# Phase 1: Foundation - Tasks
+
+- [x] F-001: Add `GET_DASHBOARD` query + `DashboardMovement`/`GetDashboardData` types (`src/modules/dashboard/graphql/queries.ts`) — exact `gql` document and types per GraphQL/API Blueprint above
+- [x] F-002: Implement `useGetDashboard()` (`src/modules/dashboard/hooks/use-get-dashboard.ts`): wraps `useQuery<GetDashboardData>(GET_DASHBOARD, { fetchPolicy: 'cache-and-network' })`, returns `{ movement: data?.dashboard.movement ?? null, isLoading: loading, error: error ? 'Não foi possível carregar o resumo do dashboard.' : null }`
+- [x] F-003: Unit tests for `useGetDashboard` (`src/modules/dashboard/hooks/__tests__/use-get-dashboard.test.tsx`, `MockedProvider` pattern from `use-list-categories.test.ts`): resolves with mocked `movement`; `movement` is `null` and `isLoading` is `true` before the query resolves; sets the fallback error message on a network error
+- [x] F-004: Implement `formatCurrencyValue(cents: number): string` (`src/modules/dashboard/utils/format-currency-value.ts`): `Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(cents / 100)`, normalize `U+00A0` → regular space (same fix already applied in `format-transaction.ts`)
+- [x] F-005: Unit tests for `formatCurrencyValue` (`src/modules/dashboard/utils/__tests__/format-currency-value.test.ts`): `0` → `"R$ 0,00"`; `1284732` → `"R$ 12.847,32"`; negative cents (e.g. a month with `expense > income`, `totalBalance < 0`) → `"-R$ ..."` (`Intl.NumberFormat` default sign placement, not custom-handled)

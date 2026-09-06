@@ -1,0 +1,45 @@
+
+[2026-09-03 10:12:58] ✅ Phase 1: Foundation
+  Branch: PM-006/phase-1-foundation
+  - F-001: Add react-router-dom as a dependency
+  - F-002: Add the shadcn sonner toast primitive
+  - F-003: Wrap <App /> with <BrowserRouter> in src/main.tsx
+  - F-004: Create src/pages/preview-page.tsx
+  - F-005: Rewrite src/App.tsx with <Routes>
+  - F-006: Scaffold auth module (placeholder RegisterPage/LoginPage)
+  Exports:
+    RegisterPage(): JSX.Element (src/modules/auth/pages/register-page.tsx) — placeholder, replaced in phase 3
+    LoginPage(): JSX.Element (src/modules/auth/pages/login-page.tsx) — placeholder, replaced in phase 3
+    PreviewPage(): JSX.Element (src/pages/preview-page.tsx)
+    Toaster (src/components/ui/sonner.tsx), mounted at App root
+    Routes: / -> /cadastro (redirect), /cadastro, /login, /preview
+
+[2026-09-03 10:15:13] ✅ Phase 2: API Layer
+  Branch: PM-006/phase-2-api-layer
+  - F-007: REGISTER_USER mutation + RegisterUserInput/RegisterUserData types
+  - F-008: useRegisterUser hook
+  - F-009: unit tests for useRegisterUser
+  Exports:
+    REGISTER_USER (gql), RegisterUserInput, RegisterUserData (src/modules/auth/graphql/mutations.ts)
+    useRegisterUser(): { registerUser(input): Promise<RegisterUserData['registerUser'] | null>, isLoading: boolean, fieldErrors: RegisterFieldError[], formError: string | null } (src/modules/auth/hooks/use-register-user.ts)
+    RegisterFieldError: { path: string, message: string }
+
+[2026-09-03 10:20:32] ✅ Phase 3: Register Screen
+  Branch: PM-006/phase-3-register-screen
+  - F-010: RegisterForm
+  - F-011: RegisterPage (final, replaces phase-1 placeholder)
+  - F-012: LoginPage (final, replaces phase-1 placeholder)
+  - F-013: component tests for RegisterForm
+  Exports:
+    RegisterForm(): JSX.Element (src/modules/auth/components/register-form.tsx) — no props, self-contained (useRegisterUser + useNavigate internally)
+    RegisterPage(): JSX.Element (src/modules/auth/pages/register-page.tsx) — final implementation
+    LoginPage(): JSX.Element (src/modules/auth/pages/login-page.tsx) — final placeholder implementation
+    Manually verified via pnpm dev + browser: /cadastro validation, password toggle, /login link/route all working
+
+[2026-09-03 10:21:56] ✅ Phase 4: Integration & Verification
+  Branch: PM-006/phase-4-integration-verification
+  - F-014: App.test.tsx covers /cadastro, /, /login, /preview
+  - F-015: manual verification (done during phase 3 browser session)
+  - F-016: pnpm lint, build, test all pass
+  Exports:
+    All 4 phases of PM-006 complete. Feature ready to merge down the stack into main.

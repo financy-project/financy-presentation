@@ -1,0 +1,23 @@
+
+[2026-09-03 12:20:41] ✅ Phase 1: Foundation
+  Branch: PM-007/phase-1-foundation
+  - [ ] F-001: Add `LOGIN`, `LoginInput`, `LoginData` to `src/modules/auth/graphql/mutations.ts` (exact `gql` document + types above)
+  - [ ] F-002: Add `credentials: 'include'` to the `HttpLink` config in `src/lib/apollo-client.ts`
+  - [ ] F-003: Implement `useLoginUser()` (`src/modules/auth/hooks/use-login-user.ts`): wraps `useMutation<LoginData, { input: LoginInput }>(LOGIN)`; returns `{ loginUser, isLoading, fieldErrors, formError }`; error-branching logic exactly as `use-register-user.ts` (see GraphQL/API Blueprint), fallback message `'Não foi possível entrar. Verifique suas credenciais e tente novamente.'`
+  - [ ] F-004: Add the `Checkbox` primitive via `pnpm dlx shadcn@latest add checkbox -p radix-nova` (`src/components/ui/checkbox.tsx`); adjust generated radius to `rounded-[4px]` and border to `border-gray-300` per the Figma Fidelity table if the generated defaults differ
+  Exports:
+    - `LOGIN`, `LoginInput`, `LoginData` — `src/modules/auth/graphql/mutations.ts`
+    - `useLoginUser(): { loginUser: (input: LoginInput) => Promise<LoginData['login'] | null>, isLoading: boolean, fieldErrors: RegisterFieldError[], formError: string | null }` — `src/modules/auth/hooks/use-login-user.ts`
+    - `apolloClient`'s `HttpLink` now sends `credentials: 'include'` — `src/lib/apollo-client.ts`
+    - `Checkbox` (Radix primitive, `rounded-[4px]`, `border-gray-300`) — `src/components/ui/checkbox.tsx`
+
+[2026-09-03 12:37:53] ✅ Phase 2: Features
+  Branch: PM-007/phase-2-features
+  - [ ] F-005: Implement `LoginForm` (`src/modules/auth/components/login-form.tsx`): `useForm<LoginFormValues>` with `loginFormSchema` (exact schema above) and `zodResolver`; reads `localStorage['financy:remembered-email']` on mount for `defaultValues.email`/`defaultValues.rememberMe`; renders `TextInput` (email, `Mail` icon), `PasswordInput` (password, `Lock` icon), Links row (`Controller`-wired `Checkbox` + "Lembrar-me" caption, disabled "Recuperar senha" `Button`), submit `Button` (`size="xl"`, label `"Entrar"`/`"Entrando…"` while `isLoading`); on submit success writes/clears the `localStorage` key, `toast.success('Login realizado com sucesso!')`, `navigate('/')`
+  - [ ] F-006: Rewrite `LoginPage` (`src/modules/auth/pages/login-page.tsx`): same layout/structure as `RegisterPage` — logo, `Card` (`border-gray-200 ring-0 [--card-spacing:--spacing(8)]`), `CardHeader` ("Fazer login" title `text-xl leading-7 font-bold`, subtitle `text-base font-normal text-gray-600`), `CardContent` (`grid gap-6`: `LoginForm`, divider `"ou"` row, sign-up group with "Ainda não tem uma conta?" + `Button variant="outline" size="xl" className="border-gray-300 text-gray-700"` containing `<UserRoundPlus className="size-[18px]" />` + "Criar conta", `RouterLink to="/cadastro"`)
+  - [ ] F-007: Unit tests for `useLoginUser` (`src/modules/auth/hooks/__tests__/use-login-user.test.ts`, `MockedProvider`): resolves `{ id, email, name }` and toggles `isLoading`; maps `extensions.validationErrors` to `fieldErrors`; sets `formError` to the server's message verbatim on invalid credentials (no `validationErrors`); sets fallback `formError` on network error
+  - [ ] F-008: Component tests for `LoginForm` (`src/modules/auth/components/__tests__/login-form.test.tsx`, mocks `useLoginUser`): shows "Informe um e-mail válido" for invalid email; shows "A senha é obrigatória" for empty password; toggles password visibility via the show/hide `IconButton`; disables submit and shows "Entrando…" while `isLoading`; renders a mocked `fieldErrors` entry under the matching field; renders the mocked `formError` in the `role="alert"` banner verbatim; navigates to `/` and calls `loginUser` with `{ email, password }` (no `rememberMe`) on valid submit; when `rememberMe` is checked on a successful submit, `localStorage.getItem('financy:remembered-email')` equals the submitted email; when unchecked, the key is cleared; on mount with an existing remembered email, the email field is pre-filled and the checkbox pre-checked
+  Exports:
+    - `LoginForm(): JSX.Element` — `src/modules/auth/components/login-form.tsx`, self-contained form with `loginFormSchema` (email + required-password + rememberMe), reads/writes `localStorage['financy:remembered-email']`
+    - `LoginPage(): JSX.Element` — `src/modules/auth/pages/login-page.tsx`, rewritten with Card/CardHeader/CardContent layout composing `LoginForm`, mirrors `RegisterPage` structure
+    - `window.ResizeObserver` polyfill added to `src/test/setup.ts` (needed by Radix `Checkbox` under jsdom — reusable by any future test rendering a `Checkbox`)

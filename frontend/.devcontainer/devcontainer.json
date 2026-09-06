@@ -1,0 +1,32 @@
+{
+  "name": "Financy Web",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "node",
+  "remoteEnv": {
+    "NODE_ENV": "development"
+  },
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "customizations": {
+    "vscode": {
+      "extensions": ["oxc.oxc-vscode", "bradlc.vscode-tailwindcss"],
+      "settings": {
+        "editor.defaultFormatter": "oxc.oxc-vscode",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.oxc": "explicit"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "corepack enable && pnpm install",
+  "forwardPorts": [5173],
+  "portsAttributes": {
+    "5173": {
+      "label": "Web Dev Server",
+      "onAutoForward": "notify"
+    }
+  }
+}

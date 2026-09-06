@@ -1,0 +1,40 @@
+## Phase 1: Foundation — done 2026-09-05
+
+### Exports
+
+- `GET_DASHBOARD` (`src/modules/dashboard/graphql/queries.ts`) now selects `dashboard.balanceByCategory { categoryId title color transactionCount totalValue }` in addition to `movement`.
+- `DashboardCategoryBalance` interface (`src/modules/dashboard/graphql/queries.ts`): `{ categoryId: string; title: string; color: string; transactionCount: number; totalValue: number }`.
+- `GetDashboardData['dashboard']` gained `balanceByCategory: DashboardCategoryBalance[]`.
+- `useGetDashboard()` (`src/modules/dashboard/hooks/use-get-dashboard.ts`) return type `UseGetDashboardResult` gained `categories: DashboardCategoryBalance[]` (defaults to `[]` before resolution and on error, same as `movement`'s `null` default).
+
+## Phase 2: Features — done 2026-09-05
+
+### Exports
+
+- `DashboardCategoriesCard` (`src/modules/dashboard/components/dashboard-categories-card.tsx`): `DashboardCategoriesCardProps = { categories: DashboardCategoryBalance[]; isLoading: boolean; error: string | null }`. Renders the "CATEGORIAS" header + "Gerenciar" link (`react-router-dom` `Link` to `/categorias`) and one row per category (`Tag` + "{n} itens" + `formatCurrencyValue(Math.abs(totalValue))`), with loading/error/empty states.
+- `DashboardHighlights` (`src/modules/dashboard/components/dashboard-highlights.tsx`): `DashboardHighlightsProps = { categories: DashboardCategoryBalance[]; isLoading: boolean; error: string | null }` — forwards these to `DashboardCategoriesCard`; `RecentTransactionsCard` is unchanged (still prop-less, PM-023 scope).
+- `DashboardPage` (`src/modules/dashboard/pages/dashboard-page.tsx`) now destructures `categories` from `useGetDashboard()` and passes `categories`/`isLoading`/`error` into `<DashboardHighlights>`.
+
+### Known follow-on (fixed in Phase 3, F-009 — do not "fix" it in this phase)
+
+- `src/modules/dashboard/pages/__tests__/dashboard-page.test.tsx`'s `useGetDashboardMock.mockReturnValue` calls predate this phase and don't include `categories`, so `DashboardCategoriesCard` receives `categories: undefined` in those 2 tests and throws on `.length`. This is `plan.md`'s Phase 3 / task F-009 by design (see `docs/architecture/dor.md`'s phase-scoping) — `pnpm test` on this branch alone shows 291/293 passing, with exactly those 2 pre-existing tests red until Phase 3 lands.
+
+## Phase 3: Polish — done 2026-09-05
+
+### Exports
+
+- `dashboard-page.test.tsx`'s `useGetDashboardMock.mockReturnValue` calls now all include `categories` (fixing the Phase 2 known follow-on above); added a case asserting the categories card's own `"Carregando categorias…"` renders within `<main>` when `useGetDashboard()` returns `isLoading: true`.
+- Found and fixed a real duplicate-alert issue while wiring F-009: when the shared `dashboard` query errors, both `DashboardPage`'s own banner and `DashboardCategoriesCard`'s error state render `role="alert"` with the same message (each section owns its error display independently, per plan.md) — the "shows the role=alert error message" test now asserts every `role="alert"` on the page carries the expected text instead of assuming a single one.
+- Full suite: `pnpm test` → 294/294 passing. `pnpm build` (`tsc -b && vite build`) → clean (pre-existing >500kB chunk-size warning only, unrelated). `pnpm lint` → clean (pre-existing warning in untouched `button.tsx` only).
+- Manual verification (F-010): ran `pnpm dev` against the local GraphQL API (`../server`, unauthenticated in this pass — no seeded test user available). Confirmed live: `Header` nav unaffected, `DashboardCategoriesCard`'s header (title + "Gerenciar" + chevron, divider, spacing/colors) matches the Figma Fidelity table, clicking "Gerenciar" navigates to `/categorias`, and the error state (page banner + card's own alert) renders as designed. The populated-row visual (tags/counts/values) was not re-verified live — no seeded account with transactions was available in this environment — but is covered by `dashboard-categories-card.test.tsx`'s T-003 case.
+
+## Rebase onto main (post PM-023 merge) — 2026-09-05
+
+Sibling feature PM-023 ("Transações Recentes no Dashboard") merged into `main` while this stack was in flight, touching the exact same files (`queries.ts`, `use-get-dashboard.ts`, `dashboard-categories-card.tsx` placeholder, `dashboard-highlights.tsx`, `dashboard-page.tsx`) and establishing conventions this stack didn't originally follow. Rebased `PM-024/categorias-no-dashboard` → `phase-1` → `phase-2` → `phase-3` onto `main`, adapting instead of just resolving textually:
+
+- **Architecture change adopted from PM-023**: dashboard highlight cards now call `useGetDashboard()` themselves (see `RecentTransactionsCard`) instead of receiving data via props from `DashboardPage`/`DashboardHighlights`. Dropped `DashboardCategoriesCardProps` and `DashboardHighlightsProps` entirely — `DashboardCategoriesCard` and `DashboardHighlights` are prop-less again, matching main. `dashboard-page.tsx`/`dashboard-highlights.tsx` ended up byte-identical to main (phase 2's commit no longer touches them).
+- **Reused PM-023's new shared primitives** instead of the phase-2 gap-fills that predated them: `DashboardCardHeader` (`src/modules/dashboard/components/dashboard-card-header.tsx`) replaces the hand-rolled header/"Gerenciar" link markup; `resolveCategoryColorName` (`src/lib/category-visuals.ts`) replaces the module-local `COLOR_OPTIONS`/`resolveTagColor` duplicate. Also dropped the border-bottom divider under the header and switched the outer `Card` back to uniform `p-6` (no divider) to match `RecentTransactionsCard`'s established structure — a deliberate consistency choice over the divider `/figma-fidelity` had found on the Categorias frame specifically.
+- All test files were rewritten to mock `useGetDashboard()` directly (mirroring `recent-transactions-card.test.tsx`'s pattern) instead of passing props.
+- `use-get-dashboard.ts`/`queries.ts`/their tests merged to carry both `recentTransactions` (PM-023) and `categories` (PM-024) side by side.
+- Fixed a knock-on type error surfaced by widening `UseGetDashboardResult`: `recent-transactions-card.test.tsx`, `dashboard-highlights.test.tsx` and `dashboard-page.test.tsx` (all PM-023 files this stack never otherwise touches) needed `categories: []` added to their `useGetDashboardMock.mockReturnValue` calls to keep `tsc -b` clean — folded into Phase 1's commit (via amend) since that's the commit that widens the type, so Phase 1 alone type-checks on its own.
+- Verified after every phase's rebase: `pnpm test` (311/311, one pre-existing unrelated flaky timeout in `use-create-transaction.test.ts` seen once, not reproducible in isolation), `pnpm build`, `pnpm lint` — all clean on the final `phase-3-polish` tip.

@@ -1,0 +1,29 @@
+# filtro-de-transactions - PM-019 - Tasks
+
+## Phase 1: Foundation
+
+- [x] F-001: `git stash pop` (or `apply`) the `PM-019-filter-field-components-wip` stash to restore:
+  - `src/modules/transactions/stores/use-categories-store.ts` — `useCategoriesStore` (Zustand: `categories`, `isLoading`, `error`, `setCategories`, `setLoading`, `setError`)
+  - `src/modules/transactions/components/category-select.tsx` — `CategorySelect({ id, label, value, onValueChange, placeholder, errorMessage, resettable })`
+  - `src/modules/transactions/components/transaction-type-select.tsx` — `TransactionTypeSelect({ id, label, value, onValueChange })`
+  - `src/modules/transactions/components/transaction-search-input.tsx` — `TransactionSearchInput({ id, value, onChange })`
+  - `src/modules/transactions/components/period-select.tsx` — `PeriodSelect({ id, label, value, onChange })`
+- [x] F-002: Tests for all of the above (already written, restored by the same stash pop): `use-categories-store.test.ts`, `category-select.test.tsx`, `transaction-type-select.test.tsx`, `transaction-search-input.test.tsx`, `period-select.test.tsx` — run `pnpm test` to confirm all pass post-pop.
+
+## Phase 2: Features
+
+- [x] F-003: Implement `useDebouncedValue<T>(value: T, delayMs: number): T` (`src/modules/transactions/hooks/use-debounced-value.ts`). Tests (`__tests__/use-debounced-value.test.ts`, fake timers): returns the initial value immediately; does not update before `delayMs` elapses; updates to the latest value after `delayMs`; resets the timer on rapid successive changes (only the final value is committed).
+- [x] F-004: Implement `useSyncCategoriesForSelect(): void` (`src/modules/transactions/hooks/use-sync-categories-for-select.ts`) per GraphQL/API Blueprint. Tests (`__tests__/use-sync-categories-for-select.test.ts`, `MockedProvider` mocking `LIST_CATEGORIES_FOR_SELECT`): on success, `useCategoriesStore.getState().categories` matches the resolved `listCategories`; `isLoading` is `true` then `false`; on a mocked GraphQL error, `useCategoriesStore.getState().error` is set to the fallback message.
+- [x] F-005: Update `LIST_TRANSACTIONS` (`src/modules/transactions/graphql/queries.ts`) to the new document + `ListTransactionsVariables` type from the GraphQL/API Blueprint.
+- [x] F-006: Update `useListTransactions(filters: TransactionFilterValues)` (`src/modules/transactions/hooks/use-list-transactions.ts`) per the GraphQL/API Blueprint (debounced description, full variables mapping, pagination reset on filter change, `AbortController`-based cancellation of the previous in-flight request). Tests (extend `__tests__/use-list-transactions.test.ts`): passes `type`/`categoryIds`/`month`/`year` through as query variables when set; omits `description`/`type`/`categoryIds` from variables when they're `''`; debounces `description` (fake timers — variables don't update before the delay); changing any filter resets `page` to `1` and clears prior cursors; changing a filter before the in-flight request for the previous filters resolves calls `.abort()` on that request's `AbortController` signal; an aborted request's `AbortError` is not surfaced as the hook's `error` (stays `null`).
+- [x] F-007: Implement `TransactionFilters` (`src/modules/transactions/components/transaction-filters.tsx`) per the Component Blueprint. Tests (`__tests__/transaction-filters.test.tsx`): renders all 4 fields with their labels ("Buscar", "Tipo", "Categoria", "Período"); calls `onChange` with the updated `TransactionFilterValues` when each field changes, leaving the other fields untouched.
+- [x] F-008: Wire into `TransactionsPage` (`src/modules/transactions/pages/transactions-page.tsx`): add `filters` state (default `period` = current month/year), call `useSyncCategoriesForSelect()`, render `<TransactionFilters value={filters} onChange={setFilters} className="mt-6" />` above `TransactionsTable`, pass `filters` into `useListTransactions(filters)`. Tests (extend `__tests__/transactions-page.test.tsx`): filter bar renders above the table; changing a filter re-issues `listTransactions` with the matching variables (via `MockedProvider`).
+- [x] F-009: Migrate `TransactionForm` (`src/modules/transactions/components/transaction-form.tsx`): replace the inline `Controller`+`SelectField`+`useCategoriesForSelect()` block with `<CategorySelect id="categoryId" label="Categoria" value={field.value} onValueChange={field.onChange} errorMessage={errors.categoryId?.message} />` inside the existing `Controller name="categoryId"`. Remove the `useCategoriesForSelect` import/call. Update `__tests__/transaction-form.test.tsx` to seed `useCategoriesStore.setState({ categories: [...], isLoading: false, error: null })` instead of mocking `LIST_CATEGORIES_FOR_SELECT` via `MockedProvider`.
+- [x] F-010: Delete `use-categories-for-select.ts` and its test (superseded — see GraphQL/API Blueprint's "Removed" note).
+
+## Phase 3: Polish
+
+- [x] F-011: Verify combined-filter behavior end-to-end (manual, per Deployment & Operations): search + type + category + period applied together produce the intersection, not a union.
+- [x] F-012: Confirm `TransactionsTable`'s existing empty state reads correctly when a filter combination matches zero transactions (no new empty-state copy needed — reuse what's there).
+- [x] F-013: Accessibility pass: `PeriodSelect`'s trigger button keyboard-operable (open via `Enter`/`Space`, per native `<button>` semantics — no custom key handling needed since it's a real `<button>`); confirm `aria-selected` on the current `PeriodSelect` option and that `SelectField`-based fields keep their existing keyboard support (unchanged, Radix `Select`).
+- [x] F-014: Visual pass matching `.workspace/image copy 7.png`: `TransactionFilters`'s `Card` padding/gap and the 4-column grid line up with the reference screenshot (no Figma tokens available — eyeball against the image, reusing existing `Card`/spacing tokens already used elsewhere on this page).
