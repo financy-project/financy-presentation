@@ -1,0 +1,8 @@
+node_modules
+.pnpm-store
+dist
+coverage
+pnpm-lock.yaml
+prisma/generated
+schema.graphql
+docs/features/**/phases/**
