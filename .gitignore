@@ -30,3 +30,34 @@ backend/.idea/
 backend/docs/features/PM-*/phase-*-output.log
 
 backend/.pnpm-store/*
+
+# --- frontend ---
+
+# Dependencies
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+
+# Env files (never commit real secrets — .env.example is the only tracked template)
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs
+frontend/*.log
+frontend/npm-debug.log*
+frontend/pnpm-debug.log*
+
+# IDE / OS
+frontend/.DS_Store
+frontend/.vscode/*
+frontend/!.vscode/extensions.json
+frontend/.idea/
+
+frontend/.workspace
+
+# Git worktrees
+frontend/.claude/worktrees/
